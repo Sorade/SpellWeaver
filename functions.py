@@ -13,6 +13,9 @@ def make_surf(w,h,color):
     surf = pygame.Surface((w,h))
     surf.fill(color)
     return surf
+    
+def overlap(l1, l2):
+    return bool(set(l1) & set(l2))
 
 '''takes a list of tulpe values and plots them in a graph
 of which the bottom left corner is set as o_pos and has 

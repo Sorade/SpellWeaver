@@ -10,4 +10,8 @@ import random
 import functions as fn
 
 colors = [(0,0,0),(255,0,0),(0,255,0),(0,0,255),(50,50,0),(0,50,50),(50,0,50)]
-images = {'square': fn.make_surf(50,50,random.choice(colors))}
+images = {'orc': fn.make_surf(25,50,(0,200,0)), 
+          'human' : fn.make_surf(25,50,(100,75,75)),
+          'fireball': fn.make_surf(25,25,(255,10,10)), 
+          'water': fn.make_surf(50,50,(0,0,200)), 
+          'ice': fn.make_surf(25,50,(0,0,255))}
