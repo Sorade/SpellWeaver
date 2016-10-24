@@ -18,7 +18,7 @@ class Cast(MySprite):
         self.targets = initiator.enemies
         self.duration = duration
         self.col_ls = None
-        self.attributes = ['flamable','freezable','conductive','fertile']
+        self.attributes = ['flammable','freezable','conductive','fertile']
         self.states = {'ablaze' : False,  
                        'frozen' : False, 
                        'electrified' : False,
@@ -76,7 +76,7 @@ class FireBall(Cast):
         self.center = initiator.center
         self.speed = 300
         self.dest = pygame.mouse.get_pos()
-        self.attributes = ['flamable']
+        self.attributes = ['flammable']
         self.states['ablaze'] = True
         self.col_ls = [1]
         
@@ -84,7 +84,7 @@ class FireBall(Cast):
         self.move_to()
         self.hit()
         self.check_states()
-        self.check_cast_interaction()
+        #self.check_cast_interaction()
         self.duration -= 1 #ensure it is never less than 0 by using property
         self.check_blit()
         
@@ -95,20 +95,20 @@ class FireBall(Cast):
     def check_cast_interaction(self):
         collisions = pygame.sprite.spritecollide(self,v.current_lvl.casts, False)
         if len(collisions) > 0:
-            flamables = [c for c in collisions if 'flamable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+            flammables = [c for c in collisions if 'flammable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
             freezables = [c for c in collisions if 'freezable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
             fertiles = [c for c in collisions if 'fertile' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
             conductives = [c for c in collisions if 'conductive' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
             
             for c in freezables:
-                if 'flamable' in self.attributes:
+                if 'flammable' in self.attributes:
                     if self.states['ablaze']:
                         self.states['ablaze'] = False
                         if c.states['frozen']:
                             c.states['frozen'] = False
                         
             for c in fertiles:
-                if 'flamable' in self.attributes:
+                if 'flammable' in self.attributes:
                     if self.states['ablaze'] and c.states['blooming']:
                         c.states['blooming'] = False
         
@@ -135,7 +135,7 @@ class WaterJet(Cast):
     def execute(self):
         self.move_to()
         self.hit()
-        self.check_cast_interaction()
+        #self.check_cast_interaction()
         self.check_states()
         self.duration -= 1 #ensure it is never less than 0 by using property
         self.check_blit()
@@ -152,13 +152,13 @@ class WaterJet(Cast):
     def check_cast_interaction(self):
         collisions = pygame.sprite.spritecollide(self,v.current_lvl.casts, False)
         if len(collisions) > 0:
-            flamables = [c for c in collisions if 'flamable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+            flammables = [c for c in collisions if 'flammable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
             freezables = [c for c in collisions if 'freezable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
             fertiles = [c for c in collisions if 'fertile' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
             conductives = [c for c in collisions if 'conductive' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
             
             
-            for c in flamables:
+            for c in flammables:
                 if 'freezable' in self.attributes:
                     if c.states['ablaze']:
                         c.states['ablaze'] = False

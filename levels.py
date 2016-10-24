@@ -82,7 +82,8 @@ class Level():
         if random.randint(0,100) == 0: self.enemy.set_dest((random.randint(50,450),250))
         for s in self.all_sprites:
             s.move_to()
-            
+        
+        self.update_states()
         for c in self.casts:
             c.execute()
 
@@ -101,3 +102,80 @@ class Level():
             
 #        for s in sprites_to_blit:
 #            blit s
+
+    def update_states(self):
+    
+        '''make cast attribute lists'''
+        flammables = []
+        freezables = []
+        fertiles =[]
+        conductives = []
+        for c in self.casts:
+            if 'flammable' in c.attributes: flammables.append(c)
+            if 'freezable' in c.attributes: freezables.append(c)
+            if 'fetile' in c.attributes: fertiles.append(c)
+            if 'conductive' in c.attributes: conductives.append(c)
+    
+        '''resolve cast states'''
+        '''for flammables'''
+    
+        for f in flammables:
+            for c in flammables:
+                if c.rect.colliderect(f.rect) and fn.overlap(c.col_ls,f.col_ls):
+                    if c is not f and f.states['ablaze']:
+                        c.states['ablaze'] = True
+    
+            for c in freezables:
+                if c.rect.colliderect(f.rect) and fn.overlap(c.col_ls,f.col_ls):
+                    if f.states['ablaze']:
+                        if c.states['frozen']:
+                            c.states['frozen'] = False
+                        f.states['ablaze'] = False
+    
+            for c in fertiles:
+                if c.rect.colliderect(f.rect) and fn.overlap(c.col_ls,f.col_ls):
+                    if f.states['ablaze'] and c.states['fertile']:
+                        c.states['fertile'] = False
+    
+        '''for freezables'''
+    
+        for w in freezables:
+            for c in freezables:
+                if c.rect.colliderect(w.rect) and fn.overlap(c.col_ls,w.col_ls):
+                    if c is not w and w.states['frozen']:
+                        c.states['frozen'] = True
+    
+            for c in fertiles:
+                if c.rect.colliderect(w.rect) and fn.overlap(c.col_ls,w.col_ls):
+                    if w.states['frozen']:
+                        c.states['blooming'] =  False
+                    elif not w.states['frozen']:
+                        c.states['blooming'] = True
+    
+            for c in conductives:
+                if c.rect.colliderect(w.rect) and fn.overlap(c.col_ls,w.col_ls):
+                    if not w.states['frozen'] and c.states['electrified']:
+                        w.states['electrified'] = True
+                    elif w.states['frozen']:
+                        w.states['electrified'] = False
+    
+        '''for fertiles'''
+    
+        for f in fertiles:
+            for c in fertiles:
+                if f is not c and fn.overlap(c.col_ls,f.col_ls) and  c.rect.colliderect(f.rect) :
+                    if f.states['blooming']:
+                        c.states['blooming'] =  True
+    
+            for c in conductives:
+                if  c.rect.colliderect(f.rect)  and fn.overlap(c.col_ls,f.col_ls):
+                    if f.states['blooming'] and c.states['electrified']:
+                        f.states['blooming'] = False
+    
+        '''for conductives'''
+    
+        for e in conductives:
+            for c in conductives:
+                if fn.overlap(c.col_ls,e.col_ls) and  c.rect.colliderect(e.rect) :
+                    if e is not c and e.states['electrified']:
+                        c.states['electrified'] =  True

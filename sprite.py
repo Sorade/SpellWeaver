@@ -7,12 +7,13 @@ Created on Sun Oct 23 18:27:51 2016
 import pygame
 import functions as fn
 import variables as v
+import data
 
 class MySprite(pygame.sprite.Sprite):
     def __init__(self):
         super(MySprite, self).__init__()
-        self.img_ref = 'square'
-        self.rect = pygame.Rect(50,50,50,50)
+        self.img_ref = 'human'
+        self.rect = data.images[self.img_ref].get_rect()
         self.center = (0,0)
         self.blit_pos = self.center
         self.speed = 120 #px/s
@@ -27,7 +28,7 @@ class MySprite(pygame.sprite.Sprite):
 
     @center.setter
     def center(self, center):
-        self.blit_pos = fn.sum_tulp(center,(-25,-25))
+        self.blit_pos = fn.sum_tulp(center,(-self.rect.w/2,-self.rect.h/2))
         self.rect.center = center
         self._center = center
         
