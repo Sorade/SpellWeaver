@@ -12,13 +12,13 @@ import functions as fn
 
 
 class Cast(MySprite):
-    def __init__(self, initiator,  duration):
-        super(Cast, self).__init__()
+    def __init__(self, img_ref, center, speed, initiator, targets, duration, attributes, callouts):
+        super(Cast, self).__init__(img_ref, center, speed, callouts)
         self.initiator = initiator
-        self.targets = initiator.enemies
+        self.targets = targets
         self.duration = duration
         self.col_ls = None
-        self.attributes = ['flammable','freezable','conductive','fertile']
+        self.attributes = attributes#['flammable','freezable','conductive','fertile']
         self.states = {'ablaze' : False,  
                        'frozen' : False, 
                        'electrified' : False,
@@ -69,18 +69,21 @@ class Regen(Cast):
 
 class FireBall(Cast):
     def __init__(self, initiator):
-        super(FireBall, self).__init__(initiator, 2*v.FPS)
-        self.img_ref = 'fireball'
-        self.targets = initiator.enemies
+        super(FireBall, self).__init__('fireball', initiator.center, 300, initiator, initiator.enemies, 2*v.FPS, ['flammable'], ['fire'])
         self.dmg = -40
-        self.center = initiator.center
-        self.speed = 300
         self.dest = pygame.mouse.get_pos()
-        self.attributes = ['flammable']
         self.states['ablaze'] = True
         self.col_ls = [1]
         
+    def listen(self,group): #listens to callouts from sprites in a group
+        self.callouts_save = list(self.callouts)
+        colliding_sprites = self.check_collision_with_group(group)
+        for s in colliding_sprites:
+            if 'water' in s.callouts or 'ice' in s.callouts:
+                self.states['ablaze'] = False
+        
     def execute(self):
+        self.listen(v.current_lvl.casts)
         self.move_to()
         self.hit()
         self.check_states()
@@ -92,25 +95,25 @@ class FireBall(Cast):
         if not self.states['ablaze']:
             self.duration = 0
             
-    def check_cast_interaction(self):
-        collisions = pygame.sprite.spritecollide(self,v.current_lvl.casts, False)
-        if len(collisions) > 0:
-            flammables = [c for c in collisions if 'flammable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-            freezables = [c for c in collisions if 'freezable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-            fertiles = [c for c in collisions if 'fertile' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-            conductives = [c for c in collisions if 'conductive' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-            
-            for c in freezables:
-                if 'flammable' in self.attributes:
-                    if self.states['ablaze']:
-                        self.states['ablaze'] = False
-                        if c.states['frozen']:
-                            c.states['frozen'] = False
-                        
-            for c in fertiles:
-                if 'flammable' in self.attributes:
-                    if self.states['ablaze'] and c.states['blooming']:
-                        c.states['blooming'] = False
+#    def check_cast_interaction(self):
+#        collisions = pygame.sprite.spritecollide(self,v.current_lvl.casts, False)
+#        if len(collisions) > 0:
+#            flammables = [c for c in collisions if 'flammable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+#            freezables = [c for c in collisions if 'freezable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+#            fertiles = [c for c in collisions if 'fertile' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+#            conductives = [c for c in collisions if 'conductive' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+#            
+#            for c in freezables:
+#                if 'flammable' in self.attributes:
+#                    if self.states['ablaze']:
+#                        self.states['ablaze'] = False
+#                        if c.states['frozen']:
+#                            c.states['frozen'] = False
+#                        
+#            for c in fertiles:
+#                if 'flammable' in self.attributes:
+#                    if self.states['ablaze'] and c.states['blooming']:
+#                        c.states['blooming'] = False
         
     def hit(self):
         col = self.check_collision(self.center,self.targets)
@@ -121,18 +124,14 @@ class FireBall(Cast):
             
 class WaterJet(Cast):
     def __init__(self, initiator):
-        super(WaterJet, self).__init__(initiator, 10*v.FPS)
-        self.img_ref = 'ice'
-        self.targets = initiator.enemies
+        super(WaterJet, self).__init__('ice', initiator.center, 150, initiator, initiator.enemies, 10*v.FPS, ['freezable','conductive'], ['water','ice'])
         self.dmg = -40
-        self.center = initiator.center
-        self.speed = 150
         self.dest = pygame.mouse.get_pos()
-        self.attributes = ['freezable','conductive']
         self.states['frozen'] = True
         self.col_ls = [1]
 
     def execute(self):
+        self.listen(v.current_lvl.casts)
         self.move_to()
         self.hit()
         #self.check_cast_interaction()
@@ -147,29 +146,41 @@ class WaterJet(Cast):
         if self.states['frozen']:
             self.img_ref = 'ice'
             self.col_ls = [0,1]
-
+            
+    def listen(self,group, resolve = 'states'): #listens to callouts from sprites in a group
+        self.callouts_save = list(self.callouts)
+        
+        colliding_sprites = self.check_collision_with_group(group)
+        for s in colliding_sprites:
+            if 'ice' in s.callouts:
+                self.states['frozen'] = True
+                self.callouts_save.append('ice')
+            if 'fire' in s.callouts:
+                self.states['frozen'] = False
+                self.callouts_save = [ x for x in s.callouts if x != 'ice' ]
+                
                     
-    def check_cast_interaction(self):
-        collisions = pygame.sprite.spritecollide(self,v.current_lvl.casts, False)
-        if len(collisions) > 0:
-            flammables = [c for c in collisions if 'flammable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-            freezables = [c for c in collisions if 'freezable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-            fertiles = [c for c in collisions if 'fertile' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-            conductives = [c for c in collisions if 'conductive' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-            
-            
-            for c in flammables:
-                if 'freezable' in self.attributes:
-                    if c.states['ablaze']:
-                        c.states['ablaze'] = False
-                        if self.states['frozen']:
-                            self.states['frozen'] = False
-            
-            for c in freezables:
-                if 'freezable' in self.attributes:
-                    if self.states['frozen']:
-                        if not c.states['frozen']:
-                            c.states['frozen'] = True                        
+#    def check_cast_interaction(self):
+#        collisions = pygame.sprite.spritecollide(self,v.current_lvl.casts, False)
+#        if len(collisions) > 0:
+#            flammables = [c for c in collisions if 'flammable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+#            freezables = [c for c in collisions if 'freezable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+#            fertiles = [c for c in collisions if 'fertile' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+#            conductives = [c for c in collisions if 'conductive' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
+#            
+#            
+#            for c in flammables:
+#                if 'freezable' in self.attributes:
+#                    if c.states['ablaze']:
+#                        c.states['ablaze'] = False
+#                        if self.states['frozen']:
+#                            self.states['frozen'] = False
+#            
+#            for c in freezables:
+#                if 'freezable' in self.attributes:
+#                    if self.states['frozen']:
+#                        if not c.states['frozen']:
+#                            c.states['frozen'] = True                        
         
     def hit(self):
         col = self.check_collision(self.center,self.targets)

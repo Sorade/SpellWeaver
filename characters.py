@@ -12,20 +12,14 @@ import random
 from sprite import MySprite
 import casts as c
         
-        
+      
 class Character(MySprite):
-    def __init__(self, (x,y), AI_type = 'cpu'):
-        super(Character, self).__init__()
-        self.hp = 500
-        self.img_ref = 'square'
-        self.rect = pygame.Rect(50,50,50,50)
-        self.center = (x,y)
-        self.blit_pos = self.center
-        self.speed = 100 #px/s
+    def __init__(self, img_ref, center, speed, hp, cat, enemy_cats, AI_type = 'cpu'):
+        super(Character, self).__init__(img_ref, center, speed)
+        self.hp = hp
         self.type = AI_type # cpu or human
-        self.dest = (250,250)
-        self.cat = 'generic'
-        self.enemy_cats = ['generic']
+        self.cat = cat
+        self.enemy_cats = enemy_cats
         self.dead = False
         self.casts = {'LMB' : c.FireBall, 
                       'RMB' : c.Regen, 
@@ -58,41 +52,18 @@ class Character(MySprite):
             self.dead = True
         else:
             self.dead = False
-            
+
+
 class Orc(Character):
-    def __init__(self, (x,y), AI_type = 'cpu'):
-        super(Orc, self).__init__((x,y))
-        self.hp = 500
-        self.img_ref = 'orc'
-        self.rect = pygame.Rect(50,50,50,50)
-        self.center = (x,y)
-        self.blit_pos = self.center
-        self.speed = 120 #px/s
-        self.type = AI_type # cpu or human
-        self.dest = (250,250)
-        self.cat = 'orc'
-        self.enemy_cats = ['human']
-        self.allies = []
-        self.dead = False
+    def __init__(self, center):
+        super(Orc, self).__init__('orc', center, 120, 500, 'orc', ['human'])
         self.casts = {'LMB' : None, 
                       'RMB' : c.FireBall, 
                       '1' : None}
                       
 class Human(Character):
-    def __init__(self, (x,y), AI_type = 'cpu'):
-        super(Human, self).__init__((x,y))
-        self.hp = 500
-        self.img_ref = 'human'
-        self.rect = pygame.Rect(50,50,50,50)
-        self.center = (x,y)
-        self.blit_pos = self.center
-        self.speed = 120 #px/s
-        self.type = AI_type # cpu or human
-        self.dest = (250,250)
-        self.cat = 'human'
-        self.enemy_cats = ['orc']
-        self.allies = []
-        self.dead = False
+    def __init__(self, center, AI_type = 'human'):
+        super(Human, self).__init__('human', center, 120, 500, 'human', ['orc'], AI_type)
         self.casts = {'LMB' : None, 
                       'RMB' : c.FireBall, 
                       'MMB' : c.WaterJet}

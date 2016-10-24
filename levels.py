@@ -83,9 +83,11 @@ class Level():
         for s in self.all_sprites:
             s.move_to()
         
-        self.update_states()
+        #self.update_states()
         for c in self.casts:
             c.execute()
+        for c in self.casts:
+            c.callouts = list(c.callouts_save)
 
         for s in self.to_blit:
             self.game.screen.blit(data.images[s.img_ref],s.blit_pos)

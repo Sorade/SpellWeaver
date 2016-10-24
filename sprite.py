@@ -10,17 +10,19 @@ import variables as v
 import data
 
 class MySprite(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, img_ref, center, speed, callouts = []):
         super(MySprite, self).__init__()
-        self.img_ref = 'human'
+        self.img_ref = img_ref
         self.rect = data.images[self.img_ref].get_rect()
-        self.center = (0,0)
+        self.center = center
         self.blit_pos = self.center
-        self.speed = 120 #px/s
+        self.speed = speed #px/s
         self.dest = (250,250)
         self.obstacles = pygame.sprite.Group()
         self.enemies = pygame.sprite.Group()
         self.allies = []
+        self.callouts = callouts
+        self.callouts_save = None
         
     @property
     def center(self):
@@ -67,3 +69,14 @@ class MySprite(pygame.sprite.Sprite):
             elif xcol == [] and ycol != []:
                 self.center = (new_pos[0],self.center[1])
             #self.center = new_pos
+                
+    def listen(self):
+        pass
+    
+    def callout(self):
+        pass
+
+    def check_collision_with_group(self,group):
+        return pygame.sprite.spritecollide(self,group, False)
+
+  
