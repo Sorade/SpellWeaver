@@ -16,6 +16,12 @@ def make_surf(w,h,color):
     
 def overlap(l1, l2):
     return bool(set(l1) & set(l2))
+    
+def col_lvl_collisions(s1,s2): #listens to callouts from sprites in a group
+    if s1 is not s2 and pygame.sprite.collide_rect_ratio(1.1) and overlap(s1.col_ls,s2.col_ls):
+        return True
+    else:
+        return False
 
 '''takes a list of tulpe values and plots them in a graph
 of which the bottom left corner is set as o_pos and has 

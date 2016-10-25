@@ -14,4 +14,6 @@ images = {'orc': fn.make_surf(25,50,(0,200,0)),
           'human' : fn.make_surf(25,50,(100,75,75)),
           'fireball': fn.make_surf(25,25,(255,10,10)), 
           'water': fn.make_surf(50,50,(0,0,200)), 
-          'ice': fn.make_surf(25,50,(0,0,255))}
+          'ice': fn.make_surf(25,50,(0,0,255)), 
+          'tree': fn.make_surf(50,75,(0,200,0)),
+          'dead_tree': fn.make_surf(50,75,(255,200,0))}

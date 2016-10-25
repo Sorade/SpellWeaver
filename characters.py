@@ -25,6 +25,8 @@ class Character(MySprite):
                       'RMB' : c.Regen, 
                       '1' : None}
         
+    def update(self):
+        self.move_to()
 
                       
     '''AI Logic'''
@@ -40,7 +42,7 @@ class Character(MySprite):
     
     '''Combat Logic'''
 
-    def cast(self,current_clicked, pos):
+    def cast(self,current_clicked):
         if self.casts[current_clicked] is not None:
             cast = self.casts[current_clicked](self)
             v.current_lvl.casts.add(cast)
@@ -52,6 +54,8 @@ class Character(MySprite):
             self.dead = True
         else:
             self.dead = False
+            
+        
 
 
 class Orc(Character):
@@ -66,5 +70,6 @@ class Human(Character):
         super(Human, self).__init__('human', center, 120, 500, 'human', ['orc'], AI_type)
         self.casts = {'LMB' : None, 
                       'RMB' : c.FireBall, 
-                      'MMB' : c.WaterJet}
+                      'MMB' : c.WaterJet,
+                      't' : c.MakeTree}
     

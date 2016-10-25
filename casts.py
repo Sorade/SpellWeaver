@@ -12,12 +12,12 @@ import functions as fn
 
 
 class Cast(MySprite):
-    def __init__(self, img_ref, center, speed, initiator, targets, duration, attributes, callouts):
-        super(Cast, self).__init__(img_ref, center, speed, callouts)
+    def __init__(self, img_ref, center, speed, initiator, targets, duration, attributes, col_ls, callouts):
+        super(Cast, self).__init__(img_ref, center, speed, callout = callouts)
         self.initiator = initiator
         self.targets = targets
         self.duration = duration
-        self.col_ls = None
+        self.col_ls = col_ls
         self.attributes = attributes#['flammable','freezable','conductive','fertile']
         self.states = {'ablaze' : False,  
                        'frozen' : False, 
@@ -34,12 +34,23 @@ class Cast(MySprite):
             self.kill()
         self._duration = duration
                        
-
+    def update(self):
+        self.listen(v.current_lvl.casts)
+        self.move_to()
+        self.hit()
+        self.check_states()
+        self.duration -= 1 #ensure it is never less than 0 by using property
+        self.check_blit()           
+                       
+                       
     def execute(self):
         pass
     
     
     def check_states(self):
+        pass
+    
+    def hit(self):
         pass
 
     
@@ -69,75 +80,38 @@ class Regen(Cast):
 
 class FireBall(Cast):
     def __init__(self, initiator):
-        super(FireBall, self).__init__('fireball', initiator.center, 300, initiator, initiator.enemies, 2*v.FPS, ['flammable'], ['fire'])
+        super(FireBall, self).__init__('fireball', initiator.center, 300, initiator, initiator.enemies, 10*v.FPS, ['flammable'], [1], ['fire'])
         self.dmg = -40
         self.dest = pygame.mouse.get_pos()
         self.states['ablaze'] = True
-        self.col_ls = [1]
         
     def listen(self,group): #listens to callouts from sprites in a group
-        self.callouts_save = list(self.callouts)
-        colliding_sprites = self.check_collision_with_group(group)
+        colliding_sprites = super(type(self), self).listen(group, 1.1)
+        
         for s in colliding_sprites:
             if 'water' in s.callouts or 'ice' in s.callouts:
                 self.states['ablaze'] = False
-        
-    def execute(self):
-        self.listen(v.current_lvl.casts)
-        self.move_to()
-        self.hit()
-        self.check_states()
-        #self.check_cast_interaction()
-        self.duration -= 1 #ensure it is never less than 0 by using property
-        self.check_blit()
+                self.callouts_save = [ x for x in self.callouts_save if x != 'fire' ]
         
     def check_states(self):
         if not self.states['ablaze']:
             self.duration = 0
             
-#    def check_cast_interaction(self):
-#        collisions = pygame.sprite.spritecollide(self,v.current_lvl.casts, False)
-#        if len(collisions) > 0:
-#            flammables = [c for c in collisions if 'flammable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-#            freezables = [c for c in collisions if 'freezable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-#            fertiles = [c for c in collisions if 'fertile' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-#            conductives = [c for c in collisions if 'conductive' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-#            
-#            for c in freezables:
-#                if 'flammable' in self.attributes:
-#                    if self.states['ablaze']:
-#                        self.states['ablaze'] = False
-#                        if c.states['frozen']:
-#                            c.states['frozen'] = False
-#                        
-#            for c in fertiles:
-#                if 'flammable' in self.attributes:
-#                    if self.states['ablaze'] and c.states['blooming']:
-#                        c.states['blooming'] = False
         
     def hit(self):
         col = self.check_collision(self.center,self.targets)
         if col != ([],[]):
             target = [col[0][0],col[1][0]][0]
             target.receive_dmg(int(self.dmg/v.FPS))
-            self.duration = v.FPS/58
+            self.duration = 0#v.FPS/58
             
 class WaterJet(Cast):
     def __init__(self, initiator):
-        super(WaterJet, self).__init__('ice', initiator.center, 150, initiator, initiator.enemies, 10*v.FPS, ['freezable','conductive'], ['water','ice'])
+        super(WaterJet, self).__init__('ice', initiator.center, 150, initiator, initiator.enemies, 10*v.FPS, ['freezable','conductive'], [1], ['ice'])
         self.dmg = -40
         self.dest = pygame.mouse.get_pos()
         self.states['frozen'] = True
-        self.col_ls = [1]
 
-    def execute(self):
-        self.listen(v.current_lvl.casts)
-        self.move_to()
-        self.hit()
-        #self.check_cast_interaction()
-        self.check_states()
-        self.duration -= 1 #ensure it is never less than 0 by using property
-        self.check_blit()
         
     def check_states(self):
         if not self.states['frozen']:
@@ -147,61 +121,57 @@ class WaterJet(Cast):
             self.img_ref = 'ice'
             self.col_ls = [0,1]
             
-    def listen(self,group, resolve = 'states'): #listens to callouts from sprites in a group
-        self.callouts_save = list(self.callouts)
-        
-        colliding_sprites = self.check_collision_with_group(group)
+    def listen(self,group): #listens to callouts from sprites in a group
+        colliding_sprites = super(type(self), self).listen(group, 1.1)
+            
         for s in colliding_sprites:
-            if 'ice' in s.callouts:
-                self.states['frozen'] = True
-                self.callouts_save.append('ice')
             if 'fire' in s.callouts:
                 self.states['frozen'] = False
-                self.callouts_save = [ x for x in s.callouts if x != 'ice' ]
-                
-                    
-#    def check_cast_interaction(self):
-#        collisions = pygame.sprite.spritecollide(self,v.current_lvl.casts, False)
-#        if len(collisions) > 0:
-#            flammables = [c for c in collisions if 'flammable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-#            freezables = [c for c in collisions if 'freezable' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-#            fertiles = [c for c in collisions if 'fertile' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-#            conductives = [c for c in collisions if 'conductive' in c.attributes and fn.overlap(c.col_ls,self.col_ls)]
-#            
-#            
-#            for c in flammables:
-#                if 'freezable' in self.attributes:
-#                    if c.states['ablaze']:
-#                        c.states['ablaze'] = False
-#                        if self.states['frozen']:
-#                            self.states['frozen'] = False
-#            
-#            for c in freezables:
-#                if 'freezable' in self.attributes:
-#                    if self.states['frozen']:
-#                        if not c.states['frozen']:
-#                            c.states['frozen'] = True                        
+                self.add_save_callout('water')
+                self.callouts_save = [ x for x in self.callouts_save if x != 'ice' ]
+            elif 'ice' in s.callouts:
+                self.states['frozen'] = True
+                self.add_save_callout('ice')
         
     def hit(self):
         col = self.check_collision(self.center,self.targets)
         if col != ([],[]):
             target = [col[0][0],col[1][0]][0]
             target.receive_dmg(int(self.dmg/v.FPS))
-            self.duration = v.FPS/58
+            self.duration = 0#v.FPS/58
 
+class MakeTree(Cast):
+    def __init__(self, initiator):
+        super(MakeTree, self).__init__('tree', initiator.center, 150, initiator, initiator.enemies, 10*v.FPS, ['fertile','flammable'], [0,1], [])
+        self.dmg = -40
+        self.dest = pygame.mouse.get_pos()
+        self.states['blooming'] = True
 
-#class CAC(Cast):
-#    def __init__(self, initiator):
-#        super(CAC).__init__(initiator, v.FPS/2)
-#        self.dps = -50
-#        
-#    def execute(self):
-#        self.deal_dmg()
-#        self.duration -= 1 #ensure it is never less than 0 by using property
-#        self.check_blit()
-#
-#    def deal_dmg(self):
-#        for t in targets:
-#            if t and self collide: t.receive_dmg(int(self.dps/v.FPS))
-#
-# 
+    def check_states(self):
+        if not self.states['blooming']:
+            self.img_ref = 'dead_tree'
+        if self.states['blooming']:
+            self.img_ref = 'tree'
+            
+    def listen(self,group): #listens to callouts from sprites in a group
+        colliding_sprites = super(type(self), self).listen(group, 1.1)
+        
+        '''make a received_callouts attributes and set() them, then, filter them in order:
+        fire, water, fertile, elec'''
+        for s in colliding_sprites:
+            #print type(s), s.callouts
+            if 'water' in s.callouts:
+                self.states['blooming'] = True
+                self.callouts_save = [ x for x in self.callouts_save if x != 'fire' ]
+            elif 'fire' in s.callouts:
+                self.states['blooming'] = False
+                self.add_save_callout('fire')
+                self.callouts_save = [ x for x in self.callouts_save if x != 'water' or x!= 'ice' ]
+                
+        
+    def hit(self):
+        col = self.check_collision(self.center,self.targets)
+        if col != ([],[]):
+            target = [col[0][0],col[1][0]][0]
+            target.receive_dmg(int(self.dmg/v.FPS))
+            self.duration = 0#v.FPS/58
