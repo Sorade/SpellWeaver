@@ -22,7 +22,6 @@ class MySprite(pygame.sprite.Sprite):
         self.enemies = pygame.sprite.Group()
         self.allies = []
         self.callouts = callout
-        self.callouts_save = None
         self.received_callouts = None
         
     @property
@@ -49,9 +48,7 @@ class MySprite(pygame.sprite.Sprite):
     def add_callout(self, callout):
         if callout not in self.callouts: self.callouts.append(callout)
             
-    def add_save_callout(self, callout):
-        if callout not in self.callouts_save: self.callouts_save.append(callout)
-            
+           
     def check_collision(self,new_pos, group): #could use spritecollideany for groups
         rect = self.rect
         '''check x-axis collision'''
@@ -88,11 +85,10 @@ class MySprite(pygame.sprite.Sprite):
                 self.center = (new_pos[0],self.center[1])
             
             '''fixes dest if nearby'''
-            if pygame.Rect(self.center,(6,6)).collidepoint(self.dest):
+            if pygame.Rect(self.center,(20,20)).collidepoint(self.dest):
                 self.center = self.dest
                 
     def listen(self,group, collision_ratio): #listens to callouts from sprites in a group
-        self.callouts_save = list(self.callouts)
         colliding_sprites = self.check_collision_with_group(group, collided = pygame.sprite.collide_rect_ratio(collision_ratio))
         colliding_sprites.remove(self)
         colliding_sprites = [x for x in colliding_sprites if fn.overlap(self.col_ls,x.col_ls)]

@@ -79,7 +79,7 @@ class Regen(Cast):
 
 class FireBall(Cast):
     def __init__(self, initiator):
-        super(FireBall, self).__init__('fireball', initiator.center, 300, initiator, initiator.enemies, 10*v.FPS, ['flammable'], [1], ['fire'])
+        super(FireBall, self).__init__('fireball', initiator.center, 350, initiator, initiator.enemies, 1*v.FPS, ['flammable'], [1], ['fire'])
         self.dmg = -40
         self.dest = pygame.mouse.get_pos()
         self.states['ablaze'] = True
@@ -87,7 +87,7 @@ class FireBall(Cast):
     def execute_callouts(self): #executes callouts received
         if 'water' in self.received_callouts or 'ice' in self.received_callouts:
             self.states['ablaze'] = False
-            self.callouts_save = [ x for x in self.callouts_save if x != 'fire' ]
+            self.callouts = [ x for x in self.callouts if x != 'fire' ]
         
     def check_states(self):
         if not self.states['ablaze']:
@@ -103,7 +103,7 @@ class FireBall(Cast):
             
 class WaterJet(Cast):
     def __init__(self, initiator):
-        super(WaterJet, self).__init__('ice', initiator.center, 150, initiator, initiator.enemies, 10*v.FPS, ['freezable','conductive'], [1], ['ice'])
+        super(WaterJet, self).__init__('ice', initiator.center, 300, initiator, initiator.enemies, 10*v.FPS, ['freezable','conductive'], [1], ['ice'])
         self.dmg = -40
         self.dest = pygame.mouse.get_pos()
         self.states['frozen'] = True
@@ -120,11 +120,11 @@ class WaterJet(Cast):
     def execute_callouts(self): #executes callouts received
         if 'fire' in self.received_callouts:
             self.states['frozen'] = False
-            self.add_save_callout('water')
-            self.callouts_save = [ x for x in self.callouts_save if x != 'ice' ]
+            self.add_callout('water')
+            self.callouts = [ x for x in self.callouts if x != 'ice' ]
         elif 'ice' in self.received_callouts:
             self.states['frozen'] = True
-            self.add_save_callout('ice')
+            self.add_callout('ice')
         
     def hit(self):
         col = self.check_collision(self.center,self.targets)
@@ -151,11 +151,11 @@ class MakeTree(Cast):
         fire, water, fertile, elec'''
         if 'water' in self.received_callouts:
             self.states['blooming'] = True
-            self.callouts_save = [ x for x in self.callouts_save if x != 'fire' ]
+            self.callouts = [ x for x in self.callouts if x != 'fire' ]
         elif 'fire' in self.received_callouts:
             self.states['blooming'] = False
-            self.add_save_callout('fire')
-            self.callouts_save = [ x for x in self.callouts_save if x != 'water' or x!= 'ice' ]
+            self.add_callout('fire')
+            self.callouts = [ x for x in self.callouts if x != 'water' or x!= 'ice' ]
                 
         
     def hit(self):
