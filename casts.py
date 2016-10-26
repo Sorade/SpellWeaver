@@ -35,7 +35,6 @@ class Cast(MySprite):
         self._duration = duration
                        
     def update(self):
-        self.listen(v.current_lvl.casts)
         self.move_to()
         self.hit()
         self.check_states()
@@ -85,13 +84,10 @@ class FireBall(Cast):
         self.dest = pygame.mouse.get_pos()
         self.states['ablaze'] = True
         
-    def listen(self,group): #listens to callouts from sprites in a group
-        colliding_sprites = super(type(self), self).listen(group, 1.1)
-        
-        for s in colliding_sprites:
-            if 'water' in s.callouts or 'ice' in s.callouts:
-                self.states['ablaze'] = False
-                self.callouts_save = [ x for x in self.callouts_save if x != 'fire' ]
+    def execute_callouts(self): #executes callouts received
+        if 'water' in self.received_callouts or 'ice' in self.received_callouts:
+            self.states['ablaze'] = False
+            self.callouts_save = [ x for x in self.callouts_save if x != 'fire' ]
         
     def check_states(self):
         if not self.states['ablaze']:
@@ -121,17 +117,14 @@ class WaterJet(Cast):
             self.img_ref = 'ice'
             self.col_ls = [0,1]
             
-    def listen(self,group): #listens to callouts from sprites in a group
-        colliding_sprites = super(type(self), self).listen(group, 1.1)
-            
-        for s in colliding_sprites:
-            if 'fire' in s.callouts:
-                self.states['frozen'] = False
-                self.add_save_callout('water')
-                self.callouts_save = [ x for x in self.callouts_save if x != 'ice' ]
-            elif 'ice' in s.callouts:
-                self.states['frozen'] = True
-                self.add_save_callout('ice')
+    def execute_callouts(self): #executes callouts received
+        if 'fire' in self.received_callouts:
+            self.states['frozen'] = False
+            self.add_save_callout('water')
+            self.callouts_save = [ x for x in self.callouts_save if x != 'ice' ]
+        elif 'ice' in self.received_callouts:
+            self.states['frozen'] = True
+            self.add_save_callout('ice')
         
     def hit(self):
         col = self.check_collision(self.center,self.targets)
@@ -153,20 +146,16 @@ class MakeTree(Cast):
         if self.states['blooming']:
             self.img_ref = 'tree'
             
-    def listen(self,group): #listens to callouts from sprites in a group
-        colliding_sprites = super(type(self), self).listen(group, 1.1)
-        
+    def execute_callouts(self): #executes callouts received
         '''make a received_callouts attributes and set() them, then, filter them in order:
         fire, water, fertile, elec'''
-        for s in colliding_sprites:
-            #print type(s), s.callouts
-            if 'water' in s.callouts:
-                self.states['blooming'] = True
-                self.callouts_save = [ x for x in self.callouts_save if x != 'fire' ]
-            elif 'fire' in s.callouts:
-                self.states['blooming'] = False
-                self.add_save_callout('fire')
-                self.callouts_save = [ x for x in self.callouts_save if x != 'water' or x!= 'ice' ]
+        if 'water' in self.received_callouts:
+            self.states['blooming'] = True
+            self.callouts_save = [ x for x in self.callouts_save if x != 'fire' ]
+        elif 'fire' in self.received_callouts:
+            self.states['blooming'] = False
+            self.add_save_callout('fire')
+            self.callouts_save = [ x for x in self.callouts_save if x != 'water' or x!= 'ice' ]
                 
         
     def hit(self):

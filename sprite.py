@@ -23,6 +23,7 @@ class MySprite(pygame.sprite.Sprite):
         self.allies = []
         self.callouts = callout
         self.callouts_save = None
+        self.received_callouts = None
         
     @property
     def center(self):
@@ -42,6 +43,7 @@ class MySprite(pygame.sprite.Sprite):
     def img_ref(self, img_ref):
         self.rect = data.images[img_ref].get_rect()
         self.rect.center = self.center
+        self.blit_pos = (self.rect.x, self.rect.y)
         self._img_ref = img_ref
         
     def add_callout(self, callout):
@@ -94,7 +96,7 @@ class MySprite(pygame.sprite.Sprite):
         colliding_sprites = self.check_collision_with_group(group, collided = pygame.sprite.collide_rect_ratio(collision_ratio))
         colliding_sprites.remove(self)
         colliding_sprites = [x for x in colliding_sprites if fn.overlap(self.col_ls,x.col_ls)]
-        return colliding_sprites
+        self.received_callouts = [call for s in colliding_sprites for call in s.callouts]
     
     def callout(self):
         pass

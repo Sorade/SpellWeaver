@@ -13,6 +13,7 @@ import functions as fn
 import variables as v
 import characters as ch
 import data
+import manager.callout as manC 
 
 
 class Level():
@@ -95,8 +96,12 @@ class Level():
 #        
 #        for c in self.casts:
 #            c.execute()
-        self.all_sprites.update()            
+#        print '++++++++++'
+#        self.all_sprites.update()            
+#        print '----------'
         
+        manC.Callout.listen_and_execute_callouts(self.casts)
+        self.all_sprites.update()
         for c in self.casts:
             c.callouts = list(c.callouts_save)
 

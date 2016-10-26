@@ -26,7 +26,6 @@ class Game():
 
     def run(self):
         while True:
-            #v.FPS = self.clock.tick(60)
             frame_speed = self.clock.tick(60)
             v.FPS = 1000./frame_speed# self.clock.get_fps()
             v.current_lvl.run()
